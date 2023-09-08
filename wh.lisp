@@ -1,0 +1,55 @@
+(defun hillC (state goal bucket1L bucket2L)
+  (print state)
+  (if (> (car state) goal) (return 0))
+  (setq succ0 (applyOperator state (nth 0 operators) bucket1L bucket2L))
+  (setq succ1 (applyOperator state (nth 1 operators) bucket1L bucket2L))
+  (setq succ2 (applyOperator state (nth 2 operators) bucket1L bucket2L))
+  (setq succ3 (applyOperator state (nth 3 operators) bucket1L bucket2L))
+  (setq succ4 (applyOperator state (nth 4 operators) bucket1L bucket2L))
+  (setq succ5 (applyOperator state (nth 5 operators) bucket1L bucket2L))
+  (cond ((= (car succ0) goal) (return-from hillC 1))
+        ((= (car succ1) goal) (return-from hillC 1))
+        ((= (car succ2) goal) (return-from hillC 1))
+        ((= (car succ3) goal) (return-from hillC 1))
+        ((= (car succ4) goal) (return-from hillC 1))
+        ((= (car succ5) goal) (return-from hillC 1)))
+  (setq succ (reduce #'closest-to (list succ0 succ1 succ2 succ3 succ4 succ5))) ; mejor de sucesores
+  (cond ((< (car succ) goal) (hillC succ goal bucket1L bucket2L))
+        ((= (car succ) goal) (return-from hillC 1))
+        (t (return-from hillC 0))))
+
+; Aplicamos el operador y retornamos un nuevo estado
+(defun applyOperator (newState op bucket1L bucket2L)
+  (cond
+    ((string= op "A llena") (setf (car newState) bucket1L))
+    ((string= op "B llena") (setf (cdr newState) bucket2L)) 
+    ((string= op "A vacia") (setf (car newState) 0))
+    ((string= op "B vacia") (setf (cdr newState) 0))
+    ((string= op "A -> B")
+      (let ((amount-to-transfer (min (car newState) (- bucket2L (cdr newState)))))
+        (setf (cdr newState) (+ (cdr newState) amount-to-transfer))
+        (setf (car newState) (- (car newState) amount-to-transfer))))
+    ((string= op "B -> A")
+      (let ((amount-to-transfer (min (cdr newState) (- bucket1L (car newState)))))
+        (setf (car newState) (+ (car newState) amount-to-transfer))
+        (setf (cdr newState) (- (cdr newState) amount-to-transfer))))
+    (t (print "Operación desconocida")))
+  newState)
+
+; Función heurística
+(defun heuristic (list)
+  (let ((value (car list)))
+    (abs (- value 2))))
+
+; Más cercano a goal
+(defun closest-to (list1 list2)
+  (if (< (heuristic list1) (heuristic list2))
+      list1
+      list2))
+
+(defvar state '(0 0))
+(defvar operators '("A llena" "B llena" "A vacia" "B vacia" "A -> B" "B -> A"))
+(defvar goal 2)
+(defvar bucket1L 4)
+(defvar bucket2L 3)
+(hillC state goal bucket1L bucket2L)
